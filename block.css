@@ -102,7 +102,8 @@ h1 {
 
 .actions {
     display: flex;
-    gap: 15px;
+    flex-direction: column;
+    gap: 10px;
     margin-bottom: 30px;
 }
 
@@ -136,6 +137,16 @@ h1 {
 
 .btn-secondary:hover {
     background: #e0e0e0;
+}
+
+.btn-allow {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+}
+
+.btn-allow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
 }
 
 .stats-preview {

@@ -103,6 +103,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const renderCustomSites = (customSites) => {
         customSitesList.innerHTML = '';
+        if (customSites.length === 0) {
+            customSitesList.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; font-size: 14px; background: #f9f9f9; border-radius: 8px;">No custom sites added yet. Add a website domain above to block it.</div>';
+            return;
+        }
         customSites.forEach((site, index) => {
             const item = document.createElement('div');
             item.className = 'custom-site-item';
@@ -124,6 +128,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const setResult = await safeStorageSet({ customSites: customSites });
                     if (setResult.success) {
                         renderCustomSites(customSites);
+                        // Update blocking rules immediately
+                        chrome.runtime.sendMessage({ action: 'updateBlockingRules' }).catch(err => console.error('Message error:', err));
                     } else {
                         alert('Failed to remove site. Please try again.');
                     }
@@ -184,6 +190,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (setResult.success) {
                         renderCustomSites(customSites);
                         customSiteInput.value = '';
+                        // Update blocking rules immediately
+                        chrome.runtime.sendMessage({ action: 'updateBlockingRules' }).catch(err => console.error('Message error:', err));
+                        alert('Custom site added successfully!');
                     } else {
                         alert('Failed to add site. Please try again.');
                     }

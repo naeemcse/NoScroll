@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const motivationalMessage = document.getElementById('motivationalMessage');
     const timeInfo = document.getElementById('timeInfo');
     const goBack = document.getElementById('goBack');
+    const allowAccess = document.getElementById('allowAccess');
     const extendBlock = document.getElementById('extendBlock');
     const todayBlocks = document.getElementById('todayBlocks');
     const timeSaved = document.getElementById('timeSaved');
@@ -70,6 +71,57 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     goBack.addEventListener('click', () => {
         window.history.back();
+    });
+
+    allowAccess.addEventListener('click', async () => {
+        try {
+            const duration = prompt('Allow access for how many minutes? (Enter "forever" for permanent access)', '5');
+            
+            if (!duration) {
+                return;
+            }
+
+            const result = await safeStorageGet(['siteAccess']);
+            const siteAccess = result.siteAccess || {};
+            const siteKey = domain.replace('www.', '').toLowerCase();
+
+            if (duration.toLowerCase() === 'forever') {
+                siteAccess[siteKey] = {
+                    allowed: true,
+                    allowedUntil: null, // null means forever
+                    allowedAt: Date.now()
+                };
+            } else {
+                const minutes = parseInt(duration);
+                if (isNaN(minutes) || minutes <= 0) {
+                    alert('Invalid duration. Please enter a number or "forever".');
+                    return;
+                }
+                siteAccess[siteKey] = {
+                    allowed: true,
+                    allowedUntil: Date.now() + (minutes * 60 * 1000),
+                    allowedAt: Date.now()
+                };
+            }
+
+            await safeStorageSet({ siteAccess: siteAccess });
+            
+            // Track this as a "break" - user chose to access
+            const today = new Date().toDateString();
+            const statsResult = await safeStorageGet(['usageStats']);
+            const stats = statsResult.usageStats || {};
+            if (!stats[today]) {
+                stats[today] = { visits: 0, timeSaved: 0, blocks: 0, breaks: 0 };
+            }
+            stats[today].breaks = (stats[today].breaks || 0) + 1;
+            await safeStorageSet({ usageStats: stats });
+            
+            // Reload the page to apply changes
+            window.location.href = `https://${domain}`;
+        } catch (error) {
+            console.error('Allow access error:', error);
+            alert('An error occurred. Please try again.');
+        }
     });
 
     extendBlock.addEventListener('click', async () => {

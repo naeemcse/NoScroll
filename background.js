@@ -15,7 +15,7 @@ const defaultSites = [
 
 // Initialize storage with defaults
 chrome.runtime.onInstalled.addListener(async () => {
-    const result = await chrome.storage.local.get(['blockedSites', 'motivationalMessages', 'customSites']);
+    const result = await chrome.storage.local.get(['blockedSites', 'motivationalMessages', 'customSites', 'isBlocking']);
     
     if (!result.blockedSites) {
         await chrome.storage.local.set({
@@ -32,6 +32,11 @@ chrome.runtime.onInstalled.addListener(async () => {
             ],
             customSites: []
         });
+    }
+    
+    // Always enable blocking by default
+    if (!result.isBlocking) {
+        await chrome.storage.local.set({ isBlocking: true, blockUntil: null });
     }
     
     await updateBlockingRules();
@@ -70,26 +75,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
 });
 
-// Handle tab updates to check if blocked site is accessed
+// Handle tab updates - track time spent and visits
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    if (changeInfo.status === 'loading' && tab.url) {
+    if (tab.url) {
         try {
-            const result = await chrome.storage.local.get(['isBlocking', 'blockedDomains']);
+            const result = await chrome.storage.local.get(['isBlocking', 'blockedDomains', 'siteAccess']);
             
             if (result.isBlocking) {
-                // Check if block hasn't expired
-                const blockCheck = await chrome.storage.local.get(['blockUntil']);
-                if (blockCheck.blockUntil && Date.now() >= blockCheck.blockUntil) {
-                    // Block expired, stop blocking
-                    await chrome.storage.local.set({ isBlocking: false, blockUntil: null });
-                    return;
-                }
-                
                 const url = new URL(tab.url);
                 const hostname = url.hostname.replace('www.', '').toLowerCase();
                 
-                // Skip if already on block page
-                if (tab.url.includes('block.html')) {
+                // Skip extension pages
+                if (tab.url.startsWith('chrome-extension://') || tab.url.startsWith('chrome://')) {
                     return;
                 }
                 
@@ -100,13 +97,26 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
                     });
                     
                     if (isBlocked) {
-                        // Redirect to block page
-                        await chrome.tabs.update(tabId, {
-                            url: chrome.runtime.getURL(`block.html?domain=${encodeURIComponent(hostname)}`)
-                        });
+                        // Check if site has access
+                        const siteAccess = result.siteAccess || {};
+                        const siteKey = hostname.replace('www.', '');
+                        const access = siteAccess[siteKey];
                         
-                        // Track the blocked visit
-                        trackVisit(hostname);
+                        const hasAccess = access && (
+                            access.allowedUntil === null || // Forever
+                            (access.allowedUntil && Date.now() < access.allowedUntil) // Temporary
+                        );
+                        
+                        if (changeInfo.status === 'loading') {
+                            if (!hasAccess) {
+                                // Track entry attempt (before blocking)
+                                trackEntryAttempt(hostname);
+                                trackVisit(hostname);
+                            } else {
+                                // Track visit when access is allowed
+                                trackUsage(hostname, true);
+                            }
+                        }
                     }
                 }
             }
@@ -116,7 +126,45 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
 });
 
-// Track usage statistics
+// Track time spent when tab is closed
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+    try {
+        // Get the tab info before it's removed (we need to track which domain)
+        // Since we can't get tab info after removal, we'll track time in content script
+    } catch (error) {
+        console.error('Error tracking tab removal:', error);
+    }
+});
+
+// Track entry attempt (when user tries to access blocked site)
+async function trackEntryAttempt(domain) {
+    try {
+        const today = new Date().toDateString();
+        const result = await chrome.storage.local.get(['usageStats']);
+        const stats = result.usageStats || {};
+        
+        if (!stats[today]) {
+            stats[today] = { visits: 0, timeSaved: 0, blocks: 0, breaks: 0, entryAttempts: [] };
+        }
+        
+        if (!stats[today].entryAttempts) {
+            stats[today].entryAttempts = [];
+        }
+        
+        // Log entry attempt with timestamp
+        stats[today].entryAttempts.push({
+            domain: domain,
+            timestamp: Date.now(),
+            blocked: true
+        });
+        
+        await chrome.storage.local.set({ usageStats: stats });
+    } catch (error) {
+        console.error('Error tracking entry attempt:', error);
+    }
+}
+
+// Track blocked visit (entry attempt)
 async function trackVisit(domain) {
     try {
         const today = new Date().toDateString();
@@ -124,23 +172,110 @@ async function trackVisit(domain) {
         const stats = result.usageStats || {};
         
         if (!stats[today]) {
-            stats[today] = { visits: 0, timeSaved: 0, blocks: 0 };
+            stats[today] = { visits: 0, timeSpent: 0, entryAttempts: [], activeSessions: {} };
         }
         
-        stats[today].visits += 1;
-        stats[today].blocks += 1;
-        stats[today].timeSaved += 5; // Assume 5 minutes saved per block
+        // Just track entry attempt, don't count as visit since it was blocked
+        if (!stats[today].entryAttempts) {
+            stats[today].entryAttempts = [];
+        }
+        
+        stats[today].entryAttempts.push({
+            domain: domain,
+            timestamp: Date.now(),
+            blocked: true
+        });
+        
+        await chrome.storage.local.set({ usageStats: stats });
+    } catch (error) {
+        console.error('Error tracking visit:', error);
+    }
+}
+
+// Track usage when access is allowed - track visit and start time tracking
+async function trackUsage(domain, isAllowed = false) {
+    try {
+        const today = new Date().toDateString();
+        const result = await chrome.storage.local.get(['usageStats']);
+        const stats = result.usageStats || {};
+        
+        if (!stats[today]) {
+            stats[today] = { visits: 0, timeSpent: 0, entryAttempts: [], activeSessions: {} };
+        }
+        
+        if (!stats[today].entryAttempts) {
+            stats[today].entryAttempts = [];
+        }
+        
+        if (!stats[today].activeSessions) {
+            stats[today].activeSessions = {};
+        }
+        
+        // Track visit
+        if (isAllowed) {
+            stats[today].visits = (stats[today].visits || 0) + 1;
+            
+            // Start tracking session time
+            const siteKey = domain.replace('www.', '').toLowerCase();
+            stats[today].activeSessions[siteKey] = {
+                startTime: Date.now(),
+                domain: domain
+            };
+        }
+        
+        // Log usage entry
+        stats[today].entryAttempts.push({
+            domain: domain,
+            timestamp: Date.now(),
+            blocked: false,
+            allowed: isAllowed
+        });
         
         await chrome.storage.local.set({ usageStats: stats });
         
         // Update today's stats
         const todayStats = {
-            timeSaved: stats[today].timeSaved,
-            blocks: stats[today].blocks
+            timeSpent: stats[today].timeSpent || 0,
+            visits: stats[today].visits || 0
         };
         await chrome.storage.local.set({ todayStats: todayStats });
     } catch (error) {
-        console.error('Error tracking visit:', error);
+        console.error('Error tracking usage:', error);
+    }
+}
+
+// Track time spent when tab is closed or user navigates away
+async function trackTimeSpent(domain) {
+    try {
+        const today = new Date().toDateString();
+        const result = await chrome.storage.local.get(['usageStats']);
+        const stats = result.usageStats || {};
+        
+        if (!stats[today] || !stats[today].activeSessions) {
+            return;
+        }
+        
+        const siteKey = domain.replace('www.', '').toLowerCase();
+        const session = stats[today].activeSessions[siteKey];
+        
+        if (session && session.startTime) {
+            const timeSpent = Math.floor((Date.now() - session.startTime) / 1000 / 60); // in minutes
+            stats[today].timeSpent = (stats[today].timeSpent || 0) + timeSpent;
+            
+            // Remove session
+            delete stats[today].activeSessions[siteKey];
+            
+            await chrome.storage.local.set({ usageStats: stats });
+            
+            // Update today's stats
+            const todayStats = {
+                timeSpent: stats[today].timeSpent || 0,
+                visits: stats[today].visits || 0
+            };
+            await chrome.storage.local.set({ todayStats: todayStats });
+        }
+    } catch (error) {
+        console.error('Error tracking time spent:', error);
     }
 }
 
@@ -165,8 +300,15 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 // Initialize blocking rules on startup
-chrome.runtime.onStartup.addListener(() => {
-    updateBlockingRules();
+chrome.runtime.onStartup.addListener(async () => {
+    // Ensure blocking is always active
+    await chrome.storage.local.set({ isBlocking: true, blockUntil: null });
+    await updateBlockingRules();
+});
+
+// Ensure blocking is always active
+chrome.runtime.onInstalled.addListener(async () => {
+    await chrome.storage.local.set({ isBlocking: true, blockUntil: null });
 });
 
 updateBlockingRules();
