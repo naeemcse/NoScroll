@@ -211,6 +211,10 @@ async function trackUsage(domain, isAllowed = false) {
             stats[today].activeSessions = {};
         }
         
+        if (!stats[today].domainUsage) {
+            stats[today].domainUsage = {};
+        }
+        
         // Track visit
         if (isAllowed) {
             stats[today].visits = (stats[today].visits || 0) + 1;
@@ -261,6 +265,12 @@ async function trackTimeSpent(domain) {
         if (session && session.startTime) {
             const timeSpent = Math.floor((Date.now() - session.startTime) / 1000 / 60); // in minutes
             stats[today].timeSpent = (stats[today].timeSpent || 0) + timeSpent;
+            
+            // Track per domain
+            if (!stats[today].domainUsage) {
+                stats[today].domainUsage = {};
+            }
+            stats[today].domainUsage[siteKey] = (stats[today].domainUsage[siteKey] || 0) + timeSpent;
             
             // Remove session
             delete stats[today].activeSessions[siteKey];

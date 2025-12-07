@@ -72,9 +72,14 @@
             const today = new Date().toDateString();
             const stats = result.usageStats || {};
             if (!stats[today]) {
-                stats[today] = { visits: 0, timeSpent: 0, entryAttempts: [] };
+                stats[today] = { visits: 0, timeSpent: 0, entryAttempts: [], domainUsage: {} };
             }
+            if (!stats[today].domainUsage) {
+                stats[today].domainUsage = {};
+            }
+            
             stats[today].timeSpent = (stats[today].timeSpent || 0) + 1;
+            stats[today].domainUsage[siteKey] = (stats[today].domainUsage[siteKey] || 0) + 1;
             
             await chrome.storage.local.set({ usageStats: stats });
             
@@ -94,9 +99,15 @@
                 const result = await chrome.storage.local.get(['usageStats']);
                 const stats = result.usageStats || {};
                 if (!stats[today]) {
-                    stats[today] = { visits: 0, timeSpent: 0, entryAttempts: [] };
+                    stats[today] = { visits: 0, timeSpent: 0, entryAttempts: [], domainUsage: {} };
                 }
+                if (!stats[today].domainUsage) {
+                    stats[today].domainUsage = {};
+                }
+                
                 stats[today].timeSpent = (stats[today].timeSpent || 0) + timeSpent;
+                stats[today].domainUsage[siteKey] = (stats[today].domainUsage[siteKey] || 0) + timeSpent;
+                
                 await chrome.storage.local.set({ usageStats: stats });
             }
             clearInterval(timeTracker);

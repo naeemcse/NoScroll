@@ -33,7 +33,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["block.html", "stats.html"],
+      "resources": ["block.html", "stats.html", "chart.umd.min.js"],
       "matches": ["<all_urls>"]
     }
   ],

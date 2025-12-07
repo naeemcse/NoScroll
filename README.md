@@ -73,6 +73,20 @@ A powerful browser extension to help you block social media sites, track your us
    - Motivational messages
    - Custom websites
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the [`documentation/`](./documentation/) folder:
+
+- **[Documentation Index](./documentation/README.md)** - Start here for all documentation
+- **[User Guide](./documentation/USER_GUIDE.md)** - Complete user manual
+- **[Architecture](./documentation/ARCHITECTURE.md)** - How the extension works
+- **[Data Storage](./documentation/DATA_STORAGE.md)** - Data storage and privacy
+- **[Time Tracking](./documentation/TIME_TRACKING.md)** - How time is calculated
+- **[Blocking Mechanism](./documentation/BLOCKING_MECHANISM.md)** - How blocking works
+- **[API Reference](./documentation/API_REFERENCE.md)** - Developer API docs
+- **[Development Guide](./documentation/DEVELOPMENT.md)** - Setup and development
+- **[FAQ](./documentation/FAQ.md)** - Frequently asked questions
+
 ## File Structure
 
 ```

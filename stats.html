@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Usage Statistics - Social Media Eradicator</title>
     <link rel="stylesheet" href="stats.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="chart.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -53,6 +53,18 @@
             <h2 id="chartTitle">Daily Usage</h2>
             <div class="chart-container">
                 <canvas id="usageChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2>Website Usage by Domain</h2>
+            <div class="filter-selector">
+                <button class="filter-btn active" data-filter="today">Today</button>
+                <button class="filter-btn" data-filter="7days">Last 7 Days</button>
+                <button class="filter-btn" data-filter="30days">Last 30 Days</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="websiteUsageChart"></canvas>
             </div>
         </div>
 
