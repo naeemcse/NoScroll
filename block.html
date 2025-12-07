@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Blocked - Social Media Eradicator</title>
+    <link rel="stylesheet" href="block.css">
+</head>
+<body>
+    <div class="container">
+        <div class="block-icon">🚫</div>
+        <h1>Site Blocked</h1>
+        <p class="blocked-domain" id="blockedDomain"></p>
+        <div class="motivational-message" id="motivationalMessage">
+            Loading message...
+        </div>
+        <div class="time-info" id="timeInfo"></div>
+        <div class="actions">
+            <button id="goBack" class="btn btn-secondary">Go Back</button>
+            <button id="extendBlock" class="btn btn-primary">Extend Block</button>
+        </div>
+        <div class="stats-preview">
+            <div class="stat-item">
+                <span class="stat-value" id="todayBlocks">0</span>
+                <span class="stat-label">Blocks Today</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="timeSaved">0m</span>
+                <span class="stat-label">Time Saved</span>
+            </div>
+        </div>
+    </div>
+    <script src="utils.js"></script>
+    <script src="block.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Eradicator - Settings</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚙️ Settings</h1>
+            <p>Configure your social media blocking preferences</p>
+        </header>
+
+        <div class="settings-section">
+            <h2>Blocked Sites</h2>
+            <p class="section-description">Select which social media sites to block</p>
+            <div class="sites-list" id="sitesList">
+                <!-- Sites will be populated by JS -->
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Motivational Messages</h2>
+            <p class="section-description">Customize messages shown when sites are blocked</p>
+            <div class="messages-container">
+                <div id="messagesList" class="messages-list">
+                    <!-- Messages will be populated by JS -->
+                </div>
+                <div class="add-message">
+                    <input type="text" id="newMessage" placeholder="Enter a motivational message...">
+                    <button id="addMessage" class="btn btn-add">Add Message</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Custom Sites</h2>
+            <p class="section-description">Add custom websites to block</p>
+            <div class="custom-sites">
+                <div class="add-site">
+                    <input type="text" id="customSite" placeholder="e.g., reddit.com">
+                    <button id="addCustomSite" class="btn btn-add">Add Site</button>
+                </div>
+                <div id="customSitesList" class="custom-sites-list">
+                    <!-- Custom sites will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-actions">
+            <button id="saveSettings" class="btn btn-primary">Save Settings</button>
+            <button id="resetSettings" class="btn btn-secondary">Reset to Defaults</button>
+        </div>
+    </div>
+    <script src="utils.js"></script>
+    <script src="options.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Validator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .check-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <h1>Social Media Eradicator - Validation Checklist</h1>
+    <div id="checks"></div>
+    <script>
+        const checks = [
+            { file: 'manifest.json', required: true },
+            { file: 'popup.html', required: true },
+            { file: 'popup.css', required: true },
+            { file: 'popup.js', required: true },
+            { file: 'options.html', required: true },
+            { file: 'options.css', required: true },
+            { file: 'options.js', required: true },
+            { file: 'background.js', required: true },
+            { file: 'content.js', required: true },
+            { file: 'block.html', required: true },
+            { file: 'block.css', required: true },
+            { file: 'block.js', required: true },
+            { file: 'stats.html', required: true },
+            { file: 'stats.css', required: true },
+            { file: 'stats.js', required: true },
+            { file: 'utils.js', required: true },
+            { file: 'icons/icon16.png', required: false },
+            { file: 'icons/icon48.png', required: false },
+            { file: 'icons/icon128.png', required: false }
+        ];
+
+        const container = document.getElementById('checks');
+        let allPass = true;
+
+        checks.forEach(check => {
+            const div = document.createElement('div');
+            div.className = 'check-item';
+            
+            // In a real browser extension context, you'd check file existence
+            // For now, this is a manual checklist
+            div.innerHTML = `${check.required ? '✓' : '○'} ${check.file} ${check.required ? '(required)' : '(optional)'}`;
+            div.className += check.required ? ' pass' : ' info';
+            
+            container.appendChild(div);
+        });
+
+        const summary = document.createElement('div');
+        summary.className = 'check-item info';
+        summary.innerHTML = '<strong>Note:</strong> This is a manual checklist. To validate the extension, load it in Chrome and check the browser console for errors.';
+        container.appendChild(summary);
+    </script>
+</body>
+</html>
+

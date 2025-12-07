@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage Statistics - Social Media Eradicator</title>
+    <link rel="stylesheet" href="stats.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Usage Statistics</h1>
+            <div class="view-selector">
+                <button class="view-btn active" data-view="daily">Daily</button>
+                <button class="view-btn" data-view="weekly">Weekly</button>
+                <button class="view-btn" data-view="monthly">Monthly</button>
+            </div>
+        </header>
+
+        <div class="stats-overview">
+            <div class="overview-card">
+                <div class="card-icon">⏱️</div>
+                <div class="card-content">
+                    <div class="card-value" id="totalTimeSaved">0h 0m</div>
+                    <div class="card-label">Total Time Saved</div>
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="card-icon">🚫</div>
+                <div class="card-content">
+                    <div class="card-value" id="totalBlocks">0</div>
+                    <div class="card-label">Total Blocks</div>
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="card-icon">📈</div>
+                <div class="card-content">
+                    <div class="card-value" id="avgDaily">0m</div>
+                    <div class="card-label">Avg Daily Time Saved</div>
+                </div>
+            </div>
+            <div class="overview-card">
+                <div class="card-icon">🔥</div>
+                <div class="card-content">
+                    <div class="card-value" id="streak">0</div>
+                    <div class="card-label">Day Streak</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2 id="chartTitle">Daily Usage</h2>
+            <div class="chart-container">
+                <canvas id="usageChart"></canvas>
+            </div>
+        </div>
+
+        <div class="detailed-stats">
+            <h2>Detailed Breakdown</h2>
+            <div id="detailedStats" class="stats-list">
+                <!-- Stats will be populated by JS -->
+            </div>
+        </div>
+
+        <div class="actions">
+            <button id="exportData" class="btn btn-secondary">Export Data</button>
+            <button id="clearData" class="btn btn-danger">Clear All Data</button>
+            <button id="goBack" class="btn btn-primary">Back to Extension</button>
+        </div>
+    </div>
+    <script src="stats.js"></script>
+</body>
+</html>
+
